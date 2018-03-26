@@ -5,6 +5,7 @@ Status](https://travis-ci.org/afkung/bmi203final.svg?branch=master)](https://tra
 
 Final Project for BMI203: Predicting TF Binding Sites Using Neural Nets
 
+We create a 3-layer feed-forward artificial neural network, then train it to identify RAP1 transcription factor binding sites using a set of known positive and negative sequences. We then run this trained network on a novel test set, and output the results into `Predictions.txt`
 
 ## usage
 
@@ -30,4 +31,4 @@ Testing is as simple as running
 python -m pytest
 ```
 
-from the root directory of this project.
+from the root directory of this project. A toy example of an auto-encoder is created and verified.
