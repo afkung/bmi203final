@@ -32,7 +32,7 @@ def run_autoencoder():
 	output_layer = algs.Layer(8,3)
 	auto8x3x8 = algs.Network(hidden_layer, output_layer)
 	# training on identity matrix
-	auto8x3x8.train_network(input, input, 10000, 0.5) # function syntax: input, output, iterations, learning rate
+	auto8x3x8.train_network(input, input, 50000, 0.5) # function syntax: input, output, iterations, learning rate
 	output = auto8x3x8.feedforward(input)
 	print("INPUT:")
 	print(input)
@@ -42,5 +42,7 @@ def run_autoencoder():
 	print(auto8x3x8.output_layer.weights)
 	print("OUTPUT:")
 	print(np.round(output,2))
+	return np.round(output,2)
+	
 
 run_autoencoder()
