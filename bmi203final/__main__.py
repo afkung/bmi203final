@@ -1,7 +1,6 @@
 """
 Andrew Kung
-BMI203: Algorithms - F18
-Last modified: 3/23/18
+BMI203: Algorithms - W18
 
 Using a 3-layer artificial neural network to identify RAP1 transcription factor binding sites
 
@@ -9,7 +8,7 @@ We input positive and negative test data from the local directory, train a 3-lay
 then run a sample dataset against the trained ANN, saving the output as <Predictions.txt>.
 """
 
-import algs
+from bmi203final import algs
 import numpy as np
 
 # input positive site list
@@ -27,53 +26,44 @@ for line in g:
 		yeast_genome += str(line).strip()
 g.close()
 
-# create negative file from yeast genome
-neg_list_size = 137
-np.random.seed(1) # change initial seed to have different negative values
+# create negative file from yeast genome, same size as positive file
+np.random.seed(1) # change seed to have different negative values
 yeast_length = len(yeast_genome)
 neg_list = []
-for counter in range(neg_list_size):
+while len(neg_list) < len(pos_list):
 	index = np.random.randint(0,yeast_length-17) # randomly selecting 17-bp sequence from yeast genome
 	neg_seq = yeast_genome[index:index+17] 
 	if neg_seq not in pos_list: # making sure doesn't overlap with positive site list
 		neg_list.append(neg_seq)
 
-# subsetting the training data and test data
-training_input = []
-training_output = []
-test_input = []
-test_output = []
-np.random.seed(1) # change initial seed to have different training vs. test sets
-test_indices = np.random.choice(137,87, replace = False)
-for index in range(137):
-	if index in test_indices:
-		training_input.append(algs.oneHot(pos_list[index]))
-		training_output.append([1])
-		training_input.append(algs.oneHot(neg_list[index]))
-		training_output.append([0])
-	else:
-		test_input.append(algs.oneHot(pos_list[index]))
-		test_output.append([1])
-		test_input.append(algs.oneHot(neg_list[index]))
-		test_output.append([0])
+# splitting data into training and test sets
+training_input, training_output, test_input, test_output = algs.subset_data(pos_list, neg_list, 50, 1)
 
-hidden_weights, output_weights = algs.trainNetwork(test_input, test_output, 100, 1000) # variable length of hidden layer, number of iterations
 
+# adjustable parameters for network, currently set to optimized values
+length_hidden = 50
+iterations = 1000
+learning_rate = 0.5
+
+# building network
+rap1_network = algs.build_network(training_input, training_output, length_hidden, iterations, learning_rate)
+
+# scoring network
+test_scores = algs.score_network(rap1_network, test_input)
+
+# plotting AUC
+AUC = algs.plotROC(test_output, test_scores)
+
+
+# running trained network against novel set
 test_list = []
 t = open('rap1-lieb-test.txt','r')
 for item in t:
 	test_list.append(item.strip())
 t.close()
 
-for index in range(len(test_input)):
-	score = algs.predict_Value(oneHot(test_input[index]), hidden_weights, output_weights)
-	if test_output[index] == 1:
-		pos_scores.append(score)
-	else:
-		neg_scores.append(score)
-algs.rocCurve(pos_scores, neg_scores, "Title Here")
-
 w = open('Predictions.txt','w')
 for item in test_list:
-	w.write(item + '\t' + algs.predict_Value(oneHot(item), hidden_weights, output_weights) + '\n')
+	output_output = rap1_network.feedforward(algs.one_hot(item))
+	w.write(item + '\t' + str(float(output_output)) + '\n')
 w.close()
